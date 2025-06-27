@@ -1,4 +1,15 @@
+/* Import Tailwind’s engine */
 @import "tailwindcss";
-@import "tw-animate-css";
 
+/* Define your custom theme tokens */
+@theme {
+  /* Colors */
+  --color-primary:   #FF6F61;
+  --color-secondary: #EAB8C9;
+  --color-accent:    #F7C6C7;
+  --color-neutral:   #F9E4E4;
 
+  /* Font families */
+  --font-sans:  "Nunito", sans-serif;
+  --font-serif: "Playfair Display", serif;
+}
