@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserServices = void 0;
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const user_model_1 = require("./user.model");
+const request_model_1 = require("../Request/request.model");
 /**
  * Service to register a new user
  * @param email    – user's email
@@ -61,11 +62,36 @@ const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* ()
  * Any field in `filters` will be matched against the User schema.
  * Excludes the password in the result.
  */
-const getUsers = (filters) => __awaiter(void 0, void 0, void 0, function* () {
-    // Build a Mongo filter object directly from query params.
-    // You could extend this to support ranges, pagination, etc.
+const getUsers = (filters, currentUserEmail) => __awaiter(void 0, void 0, void 0, function* () {
     const users = yield user_model_1.User.find(filters);
-    return users;
+    const currentUser = yield user_model_1.User.findOne({ email: currentUserEmail });
+    if (!currentUser)
+        throw new AppError_1.default(404, "Current user not found");
+    const currentUserId = String(currentUser._id);
+    const userIds = users.map(u => String(u._id));
+    const requests = yield request_model_1.Request.find({
+        $or: [
+            { fromUser: currentUserId, toUser: { $in: userIds } },
+            { fromUser: { $in: userIds }, toUser: currentUserId }
+        ]
+    });
+    const connectionStatusMap = {};
+    requests.forEach(req => {
+        if (req.status === "accepted") {
+            const otherUserId = String(req.fromUser) === currentUserId
+                ? String(req.toUser)
+                : String(req.fromUser);
+            connectionStatusMap[otherUserId] = "accepted";
+        }
+        else if (String(req.fromUser) === currentUserId) {
+            connectionStatusMap[String(req.toUser)] = req.status;
+        }
+    });
+    const usersWithStatus = users.map(user => {
+        const status = connectionStatusMap[String(user._id)] || "none";
+        return Object.assign(Object.assign({}, user.toObject()), { connectionStatus: status });
+    });
+    return usersWithStatus;
 });
 const updateUserProfile = (email, updateData) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findOneAndUpdate({ email }, updateData, { new: true, runValidators: true }).select('-password');

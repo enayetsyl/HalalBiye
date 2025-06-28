@@ -53,6 +53,26 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Log the user out by clearing the auth cookie
+ * @route   POST /api/v1/users/logout
+ * @access  Private
+ */
+const logoutUser = catchAsync(async (req, res) => {
+  // clear the token cookie
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User logged out successfully',
+    data: {}
+  });
+});
 
 /**
  * @desc    Return the authenticated user’s profile (by email from req.user)
@@ -86,7 +106,7 @@ const getUsers = catchAsync(async (req, res) => {
     filters.email = { $ne: req.user };
   }
 
-  const result = await UserServices.getUsers(filters);
+  const result = await UserServices.getUsers(filters, req.user as string);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -116,7 +136,7 @@ export const UserControllers = {
   loginUser,
   getCurrentUser,
   getUsers,
-  updateCurrentUser,
+  updateCurrentUser,logoutUser
 };
 
 

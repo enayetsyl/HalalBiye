@@ -3,7 +3,7 @@ import AppError from '../../errors/AppError';
 import { TProfileData } from '../../type';
 import { IUser, User } from './user.model';
 import { UpdateProfileData } from './user.types';
-
+import { Request as ConnectionRequest } from "../Request/request.model";
 
 /**
  * Service to register a new user
@@ -61,12 +61,45 @@ const getUserByEmail = async (email: string) => {
  * Any field in `filters` will be matched against the User schema.
  * Excludes the password in the result.
  */
-const getUsers = async (filters: Record<string, any>) => {
-  // Build a Mongo filter object directly from query params.
-  // You could extend this to support ranges, pagination, etc.
-  const users = await User.find(filters)
-  return users;
+const getUsers = async (filters: Record<string, any>, currentUserEmail: string) => {
+  const users = await User.find(filters);
+
+  const currentUser = await User.findOne({ email: currentUserEmail });
+  if (!currentUser) throw new AppError(404, "Current user not found");
+
+  const currentUserId = String(currentUser._id);
+  const userIds = users.map(u => String(u._id));
+
+  const requests = await ConnectionRequest.find({
+    $or: [
+      { fromUser: currentUserId, toUser: { $in: userIds } },
+      { fromUser: { $in: userIds }, toUser: currentUserId }
+    ]
+  });
+
+  const connectionStatusMap: Record<string, string> = {};
+
+  requests.forEach(req => {
+    if (req.status === "accepted") {
+      const otherUserId =
+        String(req.fromUser) === currentUserId
+          ? String(req.toUser)
+          : String(req.fromUser);
+      connectionStatusMap[otherUserId] = "accepted";
+    } else if (String(req.fromUser) === currentUserId) {
+      connectionStatusMap[String(req.toUser)] = req.status;
+    }
+  });
+
+  const usersWithStatus = users.map(user => {
+    const status = connectionStatusMap[String(user._id)] || "none";
+    return { ...user.toObject(), connectionStatus: status };
+  });
+
+  return usersWithStatus;
 };
+
+
 
 const updateUserProfile = async (
   email: string,

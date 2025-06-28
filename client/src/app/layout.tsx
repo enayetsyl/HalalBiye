@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/shared/Navbar";
 
+
 const nunito = Nunito({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -20,18 +21,22 @@ export const metadata: Metadata = {
     "HalalBiye is an elegant, secure matrimonial platform for Muslim singles. Create detailed profiles, browse and filter matches by faith and values, and send connection requests for your halal marriage journey.",
 };
 
-export default function RootLayout({
+export const dynamic = "force-dynamic";
+
+export default  function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
   return (
     <html lang="en">
      <body
         className={`${nunito.variable} ${playfair.variable} antialiased`}
       >
        <main>
-        <Navbar/>
+        <Navbar />
         <div>
           {children}
         </div>

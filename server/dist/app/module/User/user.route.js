@@ -24,6 +24,12 @@ router.post('/register', (0, validateRequest_1.default)(user_validation_1.UserVa
  */
 router.post('/login', (0, validateRequest_1.default)(user_validation_1.UserValidation.loginSchema), user_controller_1.UserControllers.loginUser);
 /**
+ * @route   POST /logout
+ * @desc    Log the user out (clear auth cookie)
+ * @access  Private
+ */
+router.post('/logout', authMiddleware_1.default, user_controller_1.UserControllers.logoutUser);
+/**
  * @route   GET /me
  * @desc    Log and return the authenticated user’s email
  * @access  Private

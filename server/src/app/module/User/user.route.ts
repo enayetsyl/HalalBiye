@@ -30,6 +30,18 @@ router.post(
 );
 
 /**
+ * @route   POST /logout
+ * @desc    Log the user out (clear auth cookie)
+ * @access  Private
+ */
+router.post(
+  '/logout',
+  authMiddleware,
+  UserControllers.logoutUser,
+);
+
+
+/**
  * @route   GET /me
  * @desc    Log and return the authenticated user’s email
  * @access  Private

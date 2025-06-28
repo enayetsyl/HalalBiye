@@ -2,14 +2,43 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // You can get isAuthenticated from context or props in a real app
-export function Navbar({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const router = useRouter();
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      localStorage.removeItem("isAuthenticated");
+      setIsAuthenticated(false);
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  }, [router]);
+
+useEffect(() => {
+  // initial sync
+  setIsAuthenticated(localStorage.getItem("isAuthenticated") === "true");
+
+  const onAuthChanged = () => {
+    setIsAuthenticated(localStorage.getItem("isAuthenticated") === "true");
+  };
+
+  window.addEventListener("authChanged", onAuthChanged);
+  return () => window.removeEventListener("authChanged", onAuthChanged);
+}, []);
 
   // Main links to show in nav and in drawer
   const navLinks = [
@@ -57,7 +86,12 @@ export function Navbar({ isAuthenticated = false }: { isAuthenticated?: boolean 
             </Link>
           </>
         ) : (
-          <Button variant="ghost" className="ml-2">Logout</Button>
+          <Button variant="ghost" className="ml-2"
+           onClick={() => {
+                    
+                    handleLogout();
+                  }}
+          >Logout</Button>
         )}
       </div>
 
@@ -107,7 +141,12 @@ export function Navbar({ isAuthenticated = false }: { isAuthenticated?: boolean 
                   </Link>
                 </>
               ) : (
-                <Button variant="ghost" className="w-full">Logout</Button>
+                <Button variant="ghost" className="w-full"
+                
+                 onClick={() => {
+                    setOpen(false);
+                    handleLogout();
+                  }}>Logout</Button>
               )}
             </div>
           </SheetContent>

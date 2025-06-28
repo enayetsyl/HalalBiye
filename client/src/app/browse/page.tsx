@@ -14,15 +14,14 @@ type UserProfile = {
   email: string;
   gender?: string;
   religion?: string;
+  connectionStatus?: "none" | "pending" | "accepted" | "rejected";
 };
-
-type RequestStatus = "idle" | "loading" | "sent" | "error";
 
 export default function BrowsePage() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ gender: "", religion: "" });
-  const [requestStatus, setRequestStatus] = useState<Record<string, RequestStatus>>({}); // userId: status
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
 
   // Fetch filtered users
   useEffect(() => {
@@ -48,7 +47,7 @@ export default function BrowsePage() {
           setProfiles([]);
         } else {
           const data = await res.json();
-          setProfiles(data.data || data); // adjust if your BE returns .data
+          setProfiles(data.data || data);
         }
       } catch {
         toast.error("An unexpected error occurred.");
@@ -67,7 +66,7 @@ export default function BrowsePage() {
 
   // Handle send request
   async function handleSendRequest(userId: string) {
-    setRequestStatus((prev) => ({ ...prev, [userId]: "loading" }));
+    setLoadingUserId(userId);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/requests`,
@@ -86,14 +85,20 @@ export default function BrowsePage() {
           data = { message: await res.text() };
         }
         toast.error(data.message || "Failed to send request.");
-        setRequestStatus((prev) => ({ ...prev, [userId]: "error" }));
       } else {
         toast.success("Request sent!");
-        setRequestStatus((prev) => ({ ...prev, [userId]: "sent" }));
+        setProfiles((prev) =>
+          prev.map((profile) =>
+            profile._id === userId
+              ? { ...profile, connectionStatus: "pending" }
+              : profile
+          )
+        );
       }
     } catch {
       toast.error("An unexpected error occurred.");
-      setRequestStatus((prev) => ({ ...prev, [userId]: "error" }));
+    } finally {
+      setLoadingUserId(null);
     }
   }
 
@@ -117,7 +122,7 @@ export default function BrowsePage() {
             <div>
               <Label htmlFor="filter-gender" className="block mb-1 text-sm font-medium">Gender</Label>
               <Select
-                value={filters.gender || 'all'}
+                value={filters.gender || "all"}
                 onValueChange={(v) => handleFilterChange("gender", v === "all" ? "" : v)}
               >
                 <SelectTrigger id="filter-gender" className="w-32  border-primary focus-visible:border-primary focus-visible:ring-primary/50">
@@ -133,10 +138,10 @@ export default function BrowsePage() {
             </div>
             <div>
               <Label htmlFor="filter-religion" className="block mb-1 text-sm font-medium">Religion</Label>
-             <Select
-    value={filters.religion || "all"}
-    onValueChange={(v) => handleFilterChange("religion", v === "all" ? "" : v)}
-  >
+              <Select
+                value={filters.religion || "all"}
+                onValueChange={(v) => handleFilterChange("religion", v === "all" ? "" : v)}
+              >
                 <SelectTrigger id="filter-religion" className="w-32  border-primary focus-visible:border-primary focus-visible:ring-primary/50">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
@@ -161,7 +166,7 @@ export default function BrowsePage() {
             No profiles found for the selected filters.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mx-5">
             {profiles.map((user) => (
               <Card key={user._id} className="rounded-2xl shadow border-0 bg-white/95 transition hover:scale-[1.02]">
                 <CardContent className="p-6 flex flex-col gap-2">
@@ -179,17 +184,29 @@ export default function BrowsePage() {
                       <span className="font-medium text-gray-500">Religion:</span> {user.religion || "—"}
                     </div>
                   </div>
-                  <Button
-                    className="mt-3 w-full bg-primary text-white font-semibold"
-                    disabled={requestStatus[user._id] === "sent" || requestStatus[user._id] === "loading"}
-                    onClick={() => handleSendRequest(user._id)}
-                  >
-                    {requestStatus[user._id] === "sent"
-                      ? "Request Sent"
-                      : requestStatus[user._id] === "loading"
-                      ? "Sending..."
-                      : "Send Request"}
-                  </Button>
+                  {/* Button/badge logic */}
+                  {user.connectionStatus === "accepted" ? (
+                    <div className="mt-3">
+                      <span className="inline-block px-4 py-1 bg-green-100 text-green-700 rounded-2xl font-semibold text-sm">
+                        Connected
+                      </span>
+                    </div>
+                  ) : user.connectionStatus === "pending" ? (
+                    <Button
+                      className="mt-3 w-full bg-primary text-white font-semibold"
+                      disabled
+                    >
+                      Request Pending
+                    </Button>
+                  ) : (
+                    <Button
+                      className="mt-3 w-full bg-primary text-white font-semibold"
+                      disabled={loadingUserId === user._id}
+                      onClick={() => handleSendRequest(user._id)}
+                    >
+                      {loadingUserId === user._id ? "Sending..." : "Send Request"}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
