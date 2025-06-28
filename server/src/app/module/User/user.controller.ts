@@ -63,12 +63,12 @@ const loginUser = catchAsync(async (req, res) => {
   );
 
   // Set HTTP-only auth cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: Number(config.jwt_cookie_expires_ms),
-  });
+  // res.cookie('token', token, {
+  //   httpOnly: true,
+  //   secure: true,
+  //   sameSite: 'none',
+  //   maxAge: Number(config.jwt_cookie_expires_ms),
+  // });
 
   // Send response with user data
   sendResponse(res, {
@@ -92,8 +92,8 @@ const logoutUser = catchAsync(async (req, res) => {
   // Clear the token cookie to log out
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: true,
+    sameSite: 'none',
   });
 
   sendResponse(res, {

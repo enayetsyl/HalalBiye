@@ -75,13 +75,12 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
     // Generate JWT token
     const token = (0, tokenGenerator_1.createToken)({ userId: email.toString(), role: 'user' }, config_1.default.jwt_secret, config_1.default.jwt_expires_in);
     // Set HTTP-only auth cookie
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: Number(config_1.default.jwt_cookie_expires_ms),
-    });
-    console.log('backend token and data', Object.assign(Object.assign({}, user), { token }));
+    // res.cookie('token', token, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: 'none',
+    //   maxAge: Number(config.jwt_cookie_expires_ms),
+    // });
     // Send response with user data
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
@@ -103,8 +102,8 @@ const logoutUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     // Clear the token cookie to log out
     res.clearCookie('token', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: true,
+        sameSite: 'none',
     });
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
