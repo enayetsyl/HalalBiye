@@ -70,7 +70,7 @@ export default request;
  * @throws {ApiError} On authentication failure.
  */
 export function loginUser(email: string, password: string) {
-  return request<TUser>("/api/v1/users/login", {
+  return request<TUser>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
