@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar } from "@/components/shared/Navbar";
 
 const nunito = Nunito({
   variable: "--font-sans",
@@ -29,7 +30,12 @@ export default function RootLayout({
      <body
         className={`${nunito.variable} ${playfair.variable} antialiased`}
       >
-       <main>{children}</main>
+       <main>
+        <Navbar/>
+        <div>
+          {children}
+        </div>
+       </main>
         <Toaster
         position="bottom-right"
 richColors
