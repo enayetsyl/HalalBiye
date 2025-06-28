@@ -69,7 +69,7 @@ const loginUser = catchAsync(async (req, res) => {
     sameSite: 'none',
     maxAge: Number(config.jwt_cookie_expires_ms),
   });
-
+console.log('backend token and data', {...user, token})
   // Send response with user data
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -81,6 +81,7 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
         sameSite: 'none',
         maxAge: Number(config_1.default.jwt_cookie_expires_ms),
     });
+    console.log('backend token and data', Object.assign(Object.assign({}, user), { token }));
     // Send response with user data
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,

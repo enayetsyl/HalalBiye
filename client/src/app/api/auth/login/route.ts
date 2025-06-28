@@ -14,6 +14,8 @@ export async function POST(req: Request) {
 
   const data = await res.json();
 
+  console.log('data in route file', data)
+
   if (!res.ok) {
     return NextResponse.json(data, { status: res.status });
   }
@@ -21,6 +23,8 @@ export async function POST(req: Request) {
   // Get the JWT token from backend's response (either from data or from header)
   // If your Express API sends the token in the response body:
   const token = data.data?.token; // <== Make sure to include token in body when logging in!
+
+  console.log('token in route', token)
 
   if (!token) {
     return NextResponse.json({ message: "No token returned from backend." }, { status: 500 });
@@ -31,7 +35,7 @@ export async function POST(req: Request) {
   response.cookies.set("token", token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
   });
