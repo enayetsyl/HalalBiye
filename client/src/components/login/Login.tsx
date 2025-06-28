@@ -4,8 +4,23 @@ import { AuthLayout } from "./AuthLayout";
 import { AuthHeader } from "./AuthHeader";
 import { LoginForm } from "./LoginForm";
 import Link from "next/link";
+import { JSX } from "react";
 
-const Login = () => {
+/**
+ * Login page component.
+ *
+ * Wraps the login form and header inside the shared authentication layout.
+ * Displays a background image, logo, title, subtitle, and a link to register.
+ *
+ * @component
+ * @example
+ * return (
+ *   <Login />
+ * )
+ *
+ * @returns {JSX.Element} The rendered login page.
+ */
+const Login = (): JSX.Element => {
   return (
     <AuthLayout backgroundImage="/login.png">
       <AuthHeader

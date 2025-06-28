@@ -1,11 +1,30 @@
 import { z } from 'zod';
 
-// Reusable primitives
-const genderEnum = z.enum(['Male', 'Female', 'Other'], {
-  invalid_type_error: 'Gender must be one of Male, Female, Other',
-});
+/**
+ * @description
+ * A Zod enum schema for user gender, allowing only 'Male', 'Female', or 'Other'.
+ * Provides a custom error message if the value is not one of the allowed options.
+ */
+const genderEnum = z.enum(
+  ['Male', 'Female', 'Other'],
+  {
+    invalid_type_error: 'Gender must be one of Male, Female, Other',
+  }
+);
 
-// 1) Define the “body” schemas exactly as before
+/**
+ * @description
+ * Schema for validating the request body of the login endpoint.
+ * - `email`: required string, must be a valid email format.
+ * - `password`: required string, 8–20 characters.
+ *
+ * @example
+ * // Valid payload
+ * {
+ *   email: "user@example.com",
+ *   password: "secret123"
+ * }
+ */
 const loginBody = z.object({
   email: z
     .string({
@@ -22,6 +41,32 @@ const loginBody = z.object({
     .max(20, 'Password can not be more than 20 characters'),
 });
 
+/**
+ * @description
+ * Schema for validating the request body of the registration endpoint.
+ * Fields:
+ * - `email`, `password`: required and validated as in loginBody.
+ * - `name`: optional string, up to 50 chars.
+ * - `age`: optional integer ≥ 0.
+ * - `gender`: optional enum using `genderEnum`.
+ * - `religion`, `location`, `education`, `occupation`: optional strings with max length constraints.
+ * - `height`: optional positive number.
+ *
+ * @example
+ * // Valid payload
+ * {
+ *   email: "newuser@example.com",
+ *   password: "mypassword",
+ *   name: "Jane Doe",
+ *   age: 28,
+ *   gender: "Female",
+ *   religion: "Islam",
+ *   location: "Dhaka, Bangladesh",
+ *   height: 165,
+ *   education: "Bachelor's Degree",
+ *   occupation: "Engineer"
+ * }
+ */
 const registerBody = z.object({
   email: z
     .string({
@@ -68,23 +113,50 @@ const registerBody = z.object({
     .optional(),
 });
 
-// 2) Wrap each in a top-level object with `body` (and allow `cookies` if you ever need it)
+/**
+ * @description
+ * Top-level schema for the login route, wrapping the validated body under `body`.
+ * Allows an optional `cookies` object for future extensibility.
+ *
+ * @property {typeof loginBody} body - The validated login request body.
+ * @property {any} [cookies] - Optional cookies object.
+ */
 const loginSchema = z.object({
   body: loginBody,
   cookies: z.any().optional(),
 });
 
+/**
+ * @description
+ * Top-level schema for the registration route, wrapping the validated body under `body`.
+ * Allows an optional `cookies` object for future extensibility.
+ *
+ * @property {typeof registerBody} body - The validated registration request body.
+ * @property {any} [cookies] - Optional cookies object.
+ */
 const registerSchema = z.object({
   body: registerBody,
   cookies: z.any().optional(),
 });
 
-// For updates: reuse registerBody but make all fields optional
+/**
+ * @description
+ * Schema for updating user data. Reuses `registerBody` but makes all fields optional,
+ * so clients can send partial updates.
+ *
+ * @property {Partial<registerBody>} body - Partial user fields for update.
+ * @property {any} [cookies] - Optional cookies object.
+ */
 const updateUserSchema = z.object({
   body: registerBody.partial(),
   cookies: z.any().optional(),
 });
 
+/**
+ * @description
+ * A collection of all user-related validation schemas,
+ * to be used in request validation middleware.
+ */
 export const UserValidation = {
   loginSchema,
   registerSchema,

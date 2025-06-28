@@ -1,29 +1,52 @@
 // middleware.ts
+
+/**
+ * Middleware to protect certain routes by ensuring the user is authenticated.
+ * If a request to a protected path does not include a valid JWT cookie named "token",
+ * the user is redirected to the login page.
+ */
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// any route under these prefixes will be protected
+/**
+ * List of URL path prefixes that require authentication.
+ * Any route whose pathname starts with one of these will be checked.
+ */
 const PROTECTED_PATHS = ['/browse', '/profile', '/requests']
 
+/**
+ * Next.js middleware function that runs on every request matching the `matcher` config.
+ *
+ * @param req - The incoming Next.js request object
+ * @returns A NextResponse that either continues (`next()`) or redirects to `/login`
+ */
 export function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl
 
-  // only run on our protected routes
+  // Only enforce auth on the specified protected paths
   if (PROTECTED_PATHS.some((path) => pathname.startsWith(path))) {
-    // assume your JWT cookie is named "token" — adjust if yours is different
+    // Retrieve the JWT token from cookies; adjust the name if your cookie is named differently
     const token = req.cookies.get('token')?.value
 
+    // If there's no token, redirect the user to the login page
     if (!token) {
-      // not logged in → redirect to /login
       return NextResponse.redirect(`${origin}/login`)
     }
   }
 
-  // allow through
+  // If the path is not protected or a token exists, allow the request to proceed
   return NextResponse.next()
 }
 
+/**
+ * Configuration object for this middleware.
+ * The `matcher` field specifies which routes this middleware should apply to.
+ */
 export const config = {
-  // match all sub-paths under /browse, /profile and /requests
-  matcher: ['/browse/:path*', '/profile/:path*', '/requests/:path*'],
+  matcher: [
+    '/browse/:path*',    // all subpaths under /browse
+    '/profile/:path*',   // all subpaths under /profile
+    '/requests/:path*',  // all subpaths under /requests
+  ],
 }

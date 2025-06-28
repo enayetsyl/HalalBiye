@@ -10,9 +10,23 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { RegisterSelectFieldProps } from "@/types";
+import { JSX } from "react";
 
-
-
+/**
+ * A reusable select field component for registration forms.
+ *
+ * Renders a label and a dropdown built on top of the Shadcn UI Select
+ * component, mapping each option to a SelectItem.
+ *
+ * @param {string} id - The HTML id for the select trigger (and its label htmlFor).
+ * @param {string} label - The text to display above the select dropdown.
+ * @param {string} value - The currently selected value.
+ * @param {{ value: string; label: string }[]} options - Array of option objects.
+ * @param {string} [placeholder="Select…"] - Placeholder text when no value is selected.
+ * @param {(newValue: string) => void} onChange - Callback invoked with the new value.
+ *
+ * @returns {JSX.Element} The rendered select field.
+ */
 export function RegisterSelectField({
   id,
   label,
@@ -20,7 +34,7 @@ export function RegisterSelectField({
   options,
   placeholder = "Select…",
   onChange,
-}: RegisterSelectFieldProps) {
+}: RegisterSelectFieldProps): JSX.Element {
   return (
     <div className="col-span-1">
       <Label htmlFor={id} className="mb-2 block font-medium">
