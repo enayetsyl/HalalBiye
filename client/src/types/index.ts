@@ -61,3 +61,14 @@ export type  TRequest = {
   createdAt: string;
   updatedAt: string;
 }
+
+export type  FilterBarProps = {
+  filters: { gender: string; religion: string };
+  onFilterChange: (name: "gender" | "religion", value: string) => void;
+}
+
+export type ProfileCardProps = {
+  user: TUserProfile;
+  loadingUserId: string | null;
+  onSendRequest: (userId: string) => void;
+}

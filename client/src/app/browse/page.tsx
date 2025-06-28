@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
 import { TUserProfile } from "@/types";
 import { ApiError } from "@/types/api";
 import { fetchUsers, sendConnectionRequest } from "@/lib/api";
+import FilterBar from "@/components/browse/filter-bar";
+import ProfileCard from "@/components/browse/profile-card";
 
 
 
@@ -75,49 +73,20 @@ export default function BrowsePage() {
         priority
       />
       <div className="relative z-10 max-w-5xl mx-auto">
+          {/* Header + Filters */}
         <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-serif font-bold text-primary">Browse Profiles</h1>
-            <p className="text-gray-500 font-sans text-base">Find profiles and connect!</p>
+            <h1 className="text-2xl font-serif font-bold text-primary">
+              Browse Profiles
+            </h1>
+            <p className="text-gray-500 font-sans text-base">
+              Find profiles and connect!
+            </p>
           </div>
-          {/* Filters */}
-          <div className="flex gap-4">
-            <div>
-              <Label htmlFor="filter-gender" className="block mb-1 text-sm font-medium">Gender</Label>
-              <Select
-                value={filters.gender || "all"}
-                onValueChange={(v) => handleFilterChange("gender", v === "all" ? "" : v)}
-              >
-                <SelectTrigger id="filter-gender" className="w-32  border-primary focus-visible:border-primary focus-visible:ring-primary/50">
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent className="border-primary bg-primary">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="filter-religion" className="block mb-1 text-sm font-medium">Religion</Label>
-              <Select
-                value={filters.religion || "all"}
-                onValueChange={(v) => handleFilterChange("religion", v === "all" ? "" : v)}
-              >
-                <SelectTrigger id="filter-religion" className="w-32  border-primary focus-visible:border-primary focus-visible:ring-primary/50">
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent className="border-primary bg-primary">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Islam">Islam</SelectItem>
-                  <SelectItem value="Christianity">Christianity</SelectItem>
-                  <SelectItem value="Hinduism">Hinduism</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <FilterBar
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
         </div>
         {/* Profiles grid */}
         {loading ? (
@@ -131,47 +100,12 @@ export default function BrowsePage() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mx-5">
             {profiles.map((user) => (
-              <Card key={user._id} className="rounded-2xl shadow border-0 bg-white/95 transition hover:scale-[1.02]">
-                <CardContent className="p-6 flex flex-col gap-2">
-                  <div className="mb-2">
-                    <span className="font-serif text-xl font-bold text-primary">{user.name}</span>
-                  </div>
-                  <div className="font-sans text-gray-700 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-500">Email:</span> {user.email}
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-500">Gender:</span> {user.gender || "—"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-500">Religion:</span> {user.religion || "—"}
-                    </div>
-                  </div>
-                  {/* Button/badge logic */}
-                  {user.connectionStatus === "accepted" ? (
-                    <div className="mt-3">
-                      <span className="inline-block px-4 py-1 bg-green-100 text-green-700 rounded-2xl font-semibold text-sm">
-                        Connected
-                      </span>
-                    </div>
-                  ) : user.connectionStatus === "pending" ? (
-                    <Button
-                      className="mt-3 w-full bg-primary text-white font-semibold"
-                      disabled
-                    >
-                      Request Pending
-                    </Button>
-                  ) : (
-                    <Button
-                      className="mt-3 w-full bg-primary text-white font-semibold"
-                      disabled={loadingUserId === user._id}
-                      onClick={() => handleSendRequest(user._id)}
-                    >
-                      {loadingUserId === user._id ? "Sending..." : "Send Request"}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+                <ProfileCard
+                key={user._id}
+                user={user}
+                loadingUserId={loadingUserId}
+                onSendRequest={handleSendRequest}
+              />
             ))}
           </div>
         )}
