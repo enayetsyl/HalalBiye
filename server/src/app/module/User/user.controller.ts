@@ -65,8 +65,8 @@ const loginUser = catchAsync(async (req, res) => {
   // Set HTTP-only auth cookie
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: true,
+    sameSite: 'lax',
     maxAge: Number(config.jwt_cookie_expires_ms),
   });
 
@@ -93,7 +93,8 @@ const logoutUser = catchAsync(async (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: true,
-    sameSite: 'none',
+    sameSite: 'lax',
+    maxAge: 0
   });
 
   sendResponse(res, {
