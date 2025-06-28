@@ -65,8 +65,8 @@ const loginUser = catchAsync(async (req, res) => {
   // Set HTTP-only auth cookie
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: true,
+    sameSite: 'none',
     maxAge: Number(config.jwt_cookie_expires_ms),
   });
 
