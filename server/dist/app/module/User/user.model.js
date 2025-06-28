@@ -82,12 +82,6 @@ UserSchema.pre('save', function () {
         this.password = yield bcrypt_1.default.hash(this.password, SALT_ROUNDS);
     });
 });
-// ——— STRIP PASSWORD OUT OF ALL FIND* RESULTS ———
-// By specifying the generic on pre<Query<…>>, TS knows `this` is a Query and has `.select()`.
-UserSchema.pre(/^find/, function (next) {
-    this.select('-password');
-    next();
-});
 // ——— INSTANCE HELPER TO COMPARE PASSWORDS ———
 UserSchema.methods.comparePassword = function (candidate) {
     return bcrypt_1.default.compare(candidate, this.password);

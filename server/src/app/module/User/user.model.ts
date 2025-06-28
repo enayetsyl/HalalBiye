@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema, Query } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { Gender } from '../../type';
 
@@ -57,12 +57,6 @@ UserSchema.pre<IUser>('save', async function () {
   this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
 });
 
-// ——— STRIP PASSWORD OUT OF ALL FIND* RESULTS ———
-// By specifying the generic on pre<Query<…>>, TS knows `this` is a Query and has `.select()`.
-UserSchema.pre<Query<IUser, IUser>>(/^find/, function (this, next) {
-  this.select('-password');
-  next();
-});
 
 // ——— INSTANCE HELPER TO COMPARE PASSWORDS ———
 UserSchema.methods.comparePassword = function (candidate: string) {

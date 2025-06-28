@@ -32,6 +32,20 @@ const registerUser = (email, password, profileData) => __awaiter(void 0, void 0,
     const result = yield user_model_1.User.create(Object.assign({ email, password }, profileData));
     return result;
 });
+const loginUser = (email, password) => __awaiter(void 0, void 0, void 0, function* () {
+    // 1) fetch user + password
+    const user = yield user_model_1.User.findOne({ email }).select('+password');
+    if (!user) {
+        throw new AppError_1.default(404, 'User not found');
+    }
+    // 2) verify password
+    const isValid = yield user.comparePassword(password);
+    if (!isValid) {
+        throw new AppError_1.default(401, 'Invalid email or password');
+    }
+    // 3) return user (password field is stripped by your toJSON/toObject transforms)
+    return user;
+});
 exports.UserServices = {
-    registerUser,
+    registerUser, loginUser,
 };

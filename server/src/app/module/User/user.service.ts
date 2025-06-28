@@ -27,9 +27,24 @@ const registerUser = async (
   return result;
 };
 
+const loginUser = async (email: string, password: string) => {
+  // 1) fetch user + password
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
 
+  // 2) verify password
+  const isValid = await user.comparePassword(password);
+  if (!isValid) {
+    throw new AppError(401, 'Invalid email or password');
+  }
+
+  // 3) return user (password field is stripped by your toJSON/toObject transforms)
+  return user;
+};
 
 export const UserServices = {
-  registerUser,
+  registerUser,  loginUser,
  
 };

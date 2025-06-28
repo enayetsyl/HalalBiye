@@ -11,5 +11,7 @@ export default {
   cloudinary_api_key:process.env.cloudinary_api_key,
 cloudinary_api_secret:process.env.cloudinary_api_secret,
 bcrypt_salt_rounds: process.env.bcrypt_salt_rounds,
-jwt_secret: process.env.JWT_SECRET
+jwt_secret: process.env.JWT_SECRET,
+  jwt_expires_in: Number(process.env.JWT_EXPIRES_IN!),          
+  jwt_cookie_expires_ms: Number(process.env.JWT_COOKIE_EXPIRES_MS!),
 };

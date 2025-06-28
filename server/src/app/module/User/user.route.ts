@@ -17,4 +17,14 @@ router.post(
   UserControllers.registerUser,
 );
 
+/**
+ * @route   POST /login
+ * @desc    Authenticate a user
+ * @access  Public
+ */
+router.post(
+  '/login',
+  validateRequest(UserValidation.loginSchema),
+  UserControllers.loginUser,
+);
 export const UserRoutes = router;

@@ -16,4 +16,10 @@ const router = express_1.default.Router();
  * @access  Public
  */
 router.post('/register', (0, validateRequest_1.default)(user_validation_1.UserValidation.registerSchema), user_controller_1.UserControllers.registerUser);
+/**
+ * @route   POST /login
+ * @desc    Authenticate a user
+ * @access  Public
+ */
+router.post('/login', (0, validateRequest_1.default)(user_validation_1.UserValidation.loginSchema), user_controller_1.UserControllers.loginUser);
 exports.UserRoutes = router;
