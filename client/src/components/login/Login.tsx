@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
-import { ApiError, loginUser } from "@/lib/api";
+import { loginUser } from "@/lib/api";
+import { ApiError } from "@/types/api";
+
 
 const Login = () => {
   const router = useRouter();

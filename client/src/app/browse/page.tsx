@@ -7,14 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
-import { ApiError, fetchUsers, IUser, sendConnectionRequest } from "@/lib/api";
+import { TUserProfile } from "@/types";
+import { ApiError } from "@/types/api";
+import { fetchUsers, sendConnectionRequest } from "@/lib/api";
 
-type UserProfile = IUser & {
-  connectionStatus?: "none" | "pending" | "accepted" | "rejected";
-};
+
 
 export default function BrowsePage() {
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [profiles, setProfiles] = useState<TUserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ gender: "", religion: "" });
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);

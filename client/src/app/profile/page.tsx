@@ -7,12 +7,14 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil } from "lucide-react";
-import { ApiError, fetchMyProfile, IUser } from "@/lib/api";
+import {  fetchMyProfile } from "@/lib/api";
+import { TUser } from "@/types";
+import { ApiError } from "@/types/api";
 
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<IUser | null>(null);
+  const [profile, setProfile] = useState<TUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function ProfilePage() {
     setLoading(true);
 
     // 1) call the centralized API function
-    const user: IUser = await fetchMyProfile();
+    const user: TUser = await fetchMyProfile();
 
     // 2) update state
     setProfile(user);

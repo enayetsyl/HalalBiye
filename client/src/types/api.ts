@@ -12,3 +12,10 @@ export type ApiErrorResponse = {
   err?: unknown; 
   stack?: string | null;
 };
+
+
+export type ApiError = {
+  message: string;
+  status: number;
+  errorSources?: { path: string; message: string }[];
+}

@@ -6,38 +6,19 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
 import { fetchIncomingRequests, fetchOutgoingRequests, respondToRequest } from "@/lib/api";
+import { TUserRequest, TUserSummary } from "@/types";
 
-type UserSummary = {
-  _id: string;
-  name?: string;
-  email?: string;
-  gender?: string;
-  religion?: string;
-  age?: number;
-  location?: string;
-  height?: number;
-  education?: string;
-  occupation?: string;
-};
 
-type Request = {
-  _id: string;
-  fromUser: string | UserSummary;
-  toUser: string | UserSummary;
-  status: "pending" | "accepted" | "rejected";
-  createdAt: string;
-  updatedAt: string;
-};
 
-function extractUser(user: string | UserSummary | undefined): UserSummary {
+function extractUser(user: string | TUserSummary | undefined): TUserSummary {
   if (!user) return { _id: "" };
   if (typeof user === "string") return { _id: user };
   return user;
 }
 
 export default function Requests() {
-  const [incoming, setIncoming] = useState<Request[]>([]);
-  const [outgoing, setOutgoing] = useState<Request[]>([]);
+  const [incoming, setIncoming] = useState<TUserRequest[]>([]);
+  const [outgoing, setOutgoing] = useState<TUserRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -77,7 +58,7 @@ export default function Requests() {
     (req, idx, arr) => arr.findIndex((r) => r._id === req._id) === idx
   );
 
-  function UserInfo({ user }: { user: UserSummary }) {
+  function UserInfo({ user }: { user: TUserSummary }) {
     return (
       <div className="flex flex-col gap-1 text-[15px] font-sans text-gray-800">
         <div>

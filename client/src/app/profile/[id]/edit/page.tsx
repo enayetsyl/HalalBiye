@@ -8,22 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
-import { ApiError, fetchMyProfile, updateMyProfile } from "@/lib/api";
+import {  fetchMyProfile, updateMyProfile } from "@/lib/api";
+import { TUpdatableProfileFields } from "@/types";
+import { ApiError } from "@/types/api";
 
-type UpdatableProfileFields = {
-  name?: string;
-  age?: number;
-  gender?: string;
-  religion?: string;
-  location?: string;
-  height?: number;
-  education?: string;
-  occupation?: string;
-};
+
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const [form, setForm] = useState<UpdatableProfileFields>({
+  const [form, setForm] = useState<TUpdatableProfileFields>({
     name: "",
     age: undefined,
     gender: "",

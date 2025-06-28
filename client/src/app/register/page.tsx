@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ApiError, registerUser } from "@/lib/api";
+import {  registerUser } from "@/lib/api";
+import { ApiError } from "@/types/api";
 
 export default function RegisterPage() {
   const router = useRouter();
