@@ -1,3 +1,4 @@
+
 export type Gender = 'Male' | 'Female' | 'Other';
 
 export interface User {
@@ -22,3 +23,12 @@ export interface User {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+
+// Only these fields can be updated
+export type UpdatableProfileFields = Pick<
+  User,
+  'name' | 'age' | 'gender' | 'religion' | 'location' | 'height' | 'education' | 'occupation'
+>;
+
+export type UpdateProfileData = Partial<UpdatableProfileFields>;

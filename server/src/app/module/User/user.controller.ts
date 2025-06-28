@@ -53,6 +53,65 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
+
+/**
+ * @desc    Return the authenticated user’s profile (by email from req.user)
+ * @route   GET /api/v1/users/me
+ * @access  Private
+ */
+const getCurrentUser = catchAsync(async (req, res) => {
+  // req.user was set to the email in your authMiddleware
+  const email = req.user as string;
+  const result = await UserServices.getUserByEmail(email);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User profile fetched successfully',
+    data: result,
+  });
+});
+
+/**
+ * @desc    Get a list of users matching optional filters
+ * @route   GET /api/v1/users
+ * @access  Private
+ */
+const getUsers = catchAsync(async (req, res) => {
+  // Cast query params into a filter object
+  const filters = req.query as Record<string, any>;
+
+  const result = await UserServices.getUsers(filters);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Users fetched successfully',
+    data: result,
+  });
+});
+
+const updateCurrentUser = catchAsync(async (req, res) => {
+  // req.user contains the authenticated email
+  const email = req.user as string;
+  const updateData = req.body;
+
+  const updatedUser = await UserServices.updateUserProfile(email, updateData);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Profile updated successfully',
+    data: updatedUser,
+  });
+});
+
 export const UserControllers = {
-  registerUser,loginUser,
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  getUsers,
+  updateCurrentUser,
 };
+
+

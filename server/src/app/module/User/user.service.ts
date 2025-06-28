@@ -1,7 +1,8 @@
 
 import AppError from '../../errors/AppError';
 import { TProfileData } from '../../type';
-import { User } from './user.model';
+import { IUser, User } from './user.model';
+import { UpdateProfileData } from './user.types';
 
 
 /**
@@ -44,7 +45,51 @@ const loginUser = async (email: string, password: string) => {
   return user;
 };
 
+/**
+ * Fetch the current user by email, stripping out the password.
+ */
+const getUserByEmail = async (email: string) => {
+  const user = await User.findOne({ email })
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+  return user;
+};
+
+/**
+ * Fetch multiple users based on provided filters.
+ * Any field in `filters` will be matched against the User schema.
+ * Excludes the password in the result.
+ */
+const getUsers = async (filters: Record<string, any>) => {
+  // Build a Mongo filter object directly from query params.
+  // You could extend this to support ranges, pagination, etc.
+  const users = await User.find(filters)
+  return users;
+};
+
+const updateUserProfile = async (
+  email: string,
+  updateData: UpdateProfileData
+): Promise<Omit<IUser, 'password'>> => {
+  const user = await User.findOneAndUpdate(
+    { email },
+    updateData,
+    { new: true, runValidators: true }
+  ).select('-password');
+
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  return user;
+};
+
+
 export const UserServices = {
-  registerUser,  loginUser,
- 
+  registerUser,
+  loginUser,
+  getUserByEmail,
+  getUsers,
+  updateUserProfile,
 };

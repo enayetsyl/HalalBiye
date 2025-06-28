@@ -63,6 +63,54 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
         data: user,
     });
 }));
+/**
+ * @desc    Return the authenticated user’s profile (by email from req.user)
+ * @route   GET /api/v1/users/me
+ * @access  Private
+ */
+const getCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // req.user was set to the email in your authMiddleware
+    const email = req.user;
+    const result = yield user_service_1.UserServices.getUserByEmail(email);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'User profile fetched successfully',
+        data: result,
+    });
+}));
+/**
+ * @desc    Get a list of users matching optional filters
+ * @route   GET /api/v1/users
+ * @access  Private
+ */
+const getUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Cast query params into a filter object
+    const filters = req.query;
+    const result = yield user_service_1.UserServices.getUsers(filters);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Users fetched successfully',
+        data: result,
+    });
+}));
+const updateCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // req.user contains the authenticated email
+    const email = req.user;
+    const updateData = req.body;
+    const updatedUser = yield user_service_1.UserServices.updateUserProfile(email, updateData);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Profile updated successfully',
+        data: updatedUser,
+    });
+}));
 exports.UserControllers = {
-    registerUser, loginUser,
+    registerUser,
+    loginUser,
+    getCurrentUser,
+    getUsers,
+    updateCurrentUser,
 };

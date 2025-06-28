@@ -9,6 +9,7 @@ const express_1 = __importDefault(require("express"));
 const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
 const user_controller_1 = require("./user.controller");
 const user_validation_1 = require("./user.validation");
+const authMiddleware_1 = __importDefault(require("../../middlewares/authMiddleware"));
 const router = express_1.default.Router();
 /**
  * @route   POST /register
@@ -22,4 +23,22 @@ router.post('/register', (0, validateRequest_1.default)(user_validation_1.UserVa
  * @access  Public
  */
 router.post('/login', (0, validateRequest_1.default)(user_validation_1.UserValidation.loginSchema), user_controller_1.UserControllers.loginUser);
+/**
+ * @route   GET /me
+ * @desc    Log and return the authenticated user’s email
+ * @access  Private
+ */
+router.get('/me', authMiddleware_1.default, user_controller_1.UserControllers.getCurrentUser);
+/**
+ * @route   GET /api/v1/users
+ * @desc    Browse other users’ profiles, supports query filters
+ * @access  Private
+ */
+router.get('/', authMiddleware_1.default, user_controller_1.UserControllers.getUsers);
+/**
+ * @route   PUT /api/v1/users/me
+ * @desc    Update authenticated user’s profile
+ * @access  Private
+ */
+router.put('/me', authMiddleware_1.default, (0, validateRequest_1.default)(user_validation_1.UserValidation.updateUserSchema), user_controller_1.UserControllers.updateCurrentUser);
 exports.UserRoutes = router;

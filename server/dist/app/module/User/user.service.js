@@ -46,6 +46,38 @@ const loginUser = (email, password) => __awaiter(void 0, void 0, void 0, functio
     // 3) return user (password field is stripped by your toJSON/toObject transforms)
     return user;
 });
+/**
+ * Fetch the current user by email, stripping out the password.
+ */
+const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findOne({ email });
+    if (!user) {
+        throw new AppError_1.default(404, 'User not found');
+    }
+    return user;
+});
+/**
+ * Fetch multiple users based on provided filters.
+ * Any field in `filters` will be matched against the User schema.
+ * Excludes the password in the result.
+ */
+const getUsers = (filters) => __awaiter(void 0, void 0, void 0, function* () {
+    // Build a Mongo filter object directly from query params.
+    // You could extend this to support ranges, pagination, etc.
+    const users = yield user_model_1.User.find(filters);
+    return users;
+});
+const updateUserProfile = (email, updateData) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findOneAndUpdate({ email }, updateData, { new: true, runValidators: true }).select('-password');
+    if (!user) {
+        throw new AppError_1.default(404, 'User not found');
+    }
+    return user;
+});
 exports.UserServices = {
-    registerUser, loginUser,
+    registerUser,
+    loginUser,
+    getUserByEmail,
+    getUsers,
+    updateUserProfile,
 };
