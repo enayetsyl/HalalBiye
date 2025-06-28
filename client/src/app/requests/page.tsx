@@ -1,20 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
-import { fetchIncomingRequests, fetchOutgoingRequests, respondToRequest } from "@/lib/api";
-import { TUserRequest, TUserSummary } from "@/types";
-
-
-
-function extractUser(user: string | TUserSummary | undefined): TUserSummary {
-  if (!user) return { _id: "" };
-  if (typeof user === "string") return { _id: user };
-  return user;
-}
+import {
+  fetchIncomingRequests,
+  fetchOutgoingRequests,
+  respondToRequest,
+} from "@/lib/api";
+import { TUserRequest } from "@/types";
+import SentRequestCard from "@/components/requests/SentRequestCard";
+import ReceivedRequestCard from "@/components/requests/ReceivedRequestCard";
+import AcceptedRequestCard from "@/components/requests/AcceptedRequestCard";
 
 export default function Requests() {
   const [incoming, setIncoming] = useState<TUserRequest[]>([]);
@@ -29,20 +26,45 @@ export default function Requests() {
 
   async function fetchAllRequests() {
     setLoading(true);
-   try {
-    const [inData, outData] = await Promise.all([
-      fetchIncomingRequests(),   // returns IRequest[]
-      fetchOutgoingRequests(),   // returns IRequest[]
-    ]);
-    setIncoming(inData);
-    setOutgoing(outData);
-  } catch (err: unknown) {
-    const e = err as { message?: string };
-    toast.error(e.message || "Failed to load requests.");
-  } finally {
-    setLoading(false);
+    try {
+      const [inData, outData] = await Promise.all([
+        fetchIncomingRequests(), // returns IRequest[]
+        fetchOutgoingRequests(), // returns IRequest[]
+      ]);
+      setIncoming(inData);
+      setOutgoing(outData);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e.message || "Failed to load requests.");
+    } finally {
+      setLoading(false);
+    }
   }
-}
+
+  async function handleRespond(
+    requestId: string,
+    action: "accept" | "decline"
+  ) {
+    setActionLoading(requestId + action);
+    try {
+      await respondToRequest(requestId, action);
+      toast.success(
+        action === "accept" ? "Request accepted!" : "Request declined!"
+      );
+      setIncoming((prev) =>
+        prev.map((r) =>
+          r._id === requestId
+            ? { ...r, status: action === "accept" ? "accepted" : "rejected" }
+            : r
+        )
+      );
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e.message || `Failed to ${action} request.`);
+    } finally {
+      setActionLoading(null);
+    }
+  }
 
   // Sent pending (requests you sent)
   const sentPending = outgoing.filter((req) => req.status === "pending");
@@ -54,68 +76,7 @@ export default function Requests() {
   const accepted = [
     ...incoming.filter((req) => req.status === "accepted"),
     ...outgoing.filter((req) => req.status === "accepted"),
-  ].filter(
-    (req, idx, arr) => arr.findIndex((r) => r._id === req._id) === idx
-  );
-
-  function UserInfo({ user }: { user: TUserSummary }) {
-    return (
-      <div className="flex flex-col gap-1 text-[15px] font-sans text-gray-800">
-        <div>
-          <span className="font-semibold text-primary">{user.name || "—"}</span>
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Email:</span> {user.email || "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Gender:</span> {user.gender || "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Religion:</span> {user.religion || "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Age:</span> {user.age !== undefined ? user.age : "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Location:</span> {user.location || "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Height:</span> {user.height !== undefined ? user.height + " cm" : "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Education:</span> {user.education || "—"}
-        </div>
-        <div>
-          <span className="font-medium text-gray-500">Occupation:</span> {user.occupation || "—"}
-        </div>
-      </div>
-    );
-  }
-
-  // Accept or Decline a received request
-  async function handleRespond(requestId: string, action: "accept" | "decline") {
-  setActionLoading(requestId + action);
-  try {
-    await respondToRequest(requestId, action);  // throws on non-OK
-    toast.success(
-      action === "accept" ? "Request accepted!" : "Request declined!"
-    );
-    // mirror your old state-update logic:
-    setIncoming(prev =>
-  prev.map(r =>
-    r._id === requestId
-      ? { ...r, status: action === "accept" ? "accepted" : "rejected" }
-      : r
-  )
-);
-  } catch (err: unknown) {
-    const e = err as { message?: string };
-    toast.error(e.message || `Failed to ${action} request.`);
-  } finally {
-    setActionLoading(null);
-  }
-}
-
+  ].filter((req, idx, arr) => arr.findIndex((r) => r._id === req._id) === idx);
 
   return (
     <div className="relative min-h-screen ">
@@ -127,112 +88,73 @@ export default function Requests() {
         priority
       />
       <div className="max-w-3xl mx-auto py-12 px-4">
-      <div className="relative z-10">
-        <h1 className="text-2xl font-serif font-bold text-primary mb-8">Your Requests</h1>
-        {loading ? (
-          <div className="text-center text-primary font-bold py-8">Loading...</div>
-        ) : (
-          <>
-            {/* Sent (pending) */}
-            <section className="mb-8">
-              <h2 className="text-lg font-bold font-serif mb-2">Sent Requests (Pending)</h2>
-              {sentPending.length === 0 ? (
-                <div className="text-gray-400">No pending sent requests.</div>
-              ) : (
-                <div className="space-y-4">
-                  {sentPending.map((req) => (
-                    <Card key={req._id} className="rounded-2xl shadow border-0 bg-white/95">
-                      <CardContent className="flex flex-col sm:flex-row justify-between items-center p-4 gap-6">
-                        <UserInfo user={extractUser(req.toUser)} />
-                        <span className="px-4 py-1 bg-yellow-100 text-yellow-700 rounded-full font-semibold">
-                          Pending
-                        </span>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </section>
+        <div className="relative z-10">
+          <h1 className="text-2xl font-serif font-bold text-primary mb-8">
+            Your Requests
+          </h1>
+          {loading ? (
+            <div className="text-center text-primary font-bold py-8">
+              Loading...
+            </div>
+          ) : (
+            <>
+              {/* Sent (pending) */}
+              <section className="mb-8">
+                <h2 className="text-lg font-bold font-serif mb-2">
+                  Sent Requests (Pending)
+                </h2>
+                {sentPending.length === 0 ? (
+                  <div className="text-gray-400">No pending sent requests.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {sentPending.map((req) => (
+                      <SentRequestCard key={req._id} request={req} />
+                    ))}
+                  </div>
+                )}
+              </section>
 
-            {/* Received (pending) */}
-            <section className="mb-8">
-              <h2 className="text-lg font-bold font-serif mb-2">Received Requests</h2>
-              {receivedPending.length === 0 ? (
-                <div className="text-gray-400">No pending received requests.</div>
-              ) : (
-                <div className="space-y-4">
-                  {receivedPending.map((req) => (
-                    <Card key={req._id} className="rounded-2xl shadow border-0 bg-white/95">
-                      <CardContent className="flex flex-col sm:flex-row justify-between items-center p-4 gap-6">
-                        <UserInfo user={extractUser(req.fromUser)} />
-                        <div className="flex flex-col gap-2 items-center">
-                          <div className="flex gap-2">
-                            <Button
-                              variant="default"
-                              className="bg-green-600 text-white font-semibold px-4"
-                              disabled={actionLoading === req._id + "accept"}
-                              onClick={() => handleRespond(req._id, "accept")}
-                            >
-                              {actionLoading === req._id + "accept" ? "Accepting..." : "Accept"}
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              className="bg-red-100 text-red-600 border border-red-200 font-semibold px-4"
-                              disabled={actionLoading === req._id + "decline"}
-                              onClick={() => handleRespond(req._id, "decline")}
-                            >
-                              {actionLoading === req._id + "decline" ? "Rejecting..." : "Reject"}
-                            </Button>
-                          </div>
-                          {req.status !== "pending" && (
-                            <span
-                              className={`px-3 py-0.5 rounded-full text-xs font-semibold ${
-                                req.status === "accepted"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              {req.status === "accepted" ? "Accepted" : "Rejected"}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </section>
+              {/* Received (pending) */}
+              <section className="mb-8">
+                <h2 className="text-lg font-bold font-serif mb-2">
+                  Received Requests
+                </h2>
+                {receivedPending.length === 0 ? (
+                  <div className="text-gray-400">
+                    No pending received requests.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {receivedPending.map((req) => (
+                      <ReceivedRequestCard
+                        key={req._id}
+                        request={req}
+                        actionLoading={actionLoading}
+                        onRespond={handleRespond}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
 
-            {/* Accepted */}
-            <section className="mb-8">
-              <h2 className="text-lg font-bold font-serif mb-2">Accepted Connections</h2>
-              {accepted.length === 0 ? (
-                <div className="text-gray-400">No accepted requests yet.</div>
-              ) : (
-                <div className="space-y-4">
-                  {accepted.map((req) => {
-                    // Show the populated user object, fallback to string _id if needed
-                    const userA = extractUser(req.fromUser);
-                    const userB = extractUser(req.toUser);
-                    // Just pick the one that has a name (so always shows the "other" user)
-                    const showUser = userA.name ? userA : userB;
-                    return (
-                      <Card key={req._id} className="rounded-2xl shadow border-0 bg-white/95">
-                        <CardContent className="flex flex-col sm:flex-row justify-between items-center p-4 gap-6">
-                          <UserInfo user={showUser} />
-                          <span className="px-4 py-1 bg-green-100 text-green-700 rounded-full font-semibold">
-                            Connected
-                          </span>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-      </div>
+              {/* Accepted */}
+              <section className="mb-8">
+                <h2 className="text-lg font-bold font-serif mb-2">
+                  Accepted Connections
+                </h2>
+                {accepted.length === 0 ? (
+                  <div className="text-gray-400">No accepted requests yet.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {accepted.map((req) => (
+                      <AcceptedRequestCard key={req._id} request={req} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

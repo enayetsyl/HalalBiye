@@ -59,3 +59,5 @@ export const registerFields: RegisterFieldConfig[] = [
     { id: "education", label: "Education", type: "text" },
     { id: "occupation",label: "Occupation",type: "text" },
   ];
+
+  

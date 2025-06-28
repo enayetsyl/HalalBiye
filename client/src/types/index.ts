@@ -172,3 +172,9 @@ export type RegisterFieldConfig = {
   placeholder?: string;
   options?: { value: string; label: string }[]; // only for select
 }
+
+export type  ReceivedRequestCardProps  = {
+  request: TUserRequest;
+  actionLoading: string | null;
+  onRespond: (id: string, action: "accept" | "decline") => void;
+}
