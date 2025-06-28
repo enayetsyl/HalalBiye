@@ -68,7 +68,9 @@ export const LoginForm: React.FC = () => {
       window.dispatchEvent(new Event("authChanged"));
 
       // Navigate to the user's profile page
-      router.push("/profile");
+     setTimeout(() => {
+  router.push('/profile'); 
+}, 100); 
     } catch (err) {
       const apiErr = err as ApiError;
       toast.error(apiErr.message);
