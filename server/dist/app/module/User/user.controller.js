@@ -85,8 +85,12 @@ const getCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
  * @access  Private
  */
 const getUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Cast query params into a filter object
-    const filters = req.query;
+    // Collect filters except for the current user
+    const filters = Object.assign({}, req.query);
+    // Exclude current user's email from results
+    if (req.user) {
+        filters.email = { $ne: req.user };
+    }
     const result = yield user_service_1.UserServices.getUsers(filters);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,

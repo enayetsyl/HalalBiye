@@ -78,8 +78,13 @@ const getCurrentUser = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getUsers = catchAsync(async (req, res) => {
-  // Cast query params into a filter object
-  const filters = req.query as Record<string, any>;
+  // Collect filters except for the current user
+  const filters = { ...req.query } as Record<string, any>;
+
+  // Exclude current user's email from results
+  if (req.user) {
+    filters.email = { $ne: req.user };
+  }
 
   const result = await UserServices.getUsers(filters);
 
