@@ -72,3 +72,27 @@ export type ProfileCardProps = {
   loadingUserId: string | null;
   onSendRequest: (userId: string) => void;
 }
+
+export type  AuthLayoutProps = {
+  children: React.ReactNode;
+  backgroundImage?: string;
+}
+
+export type  AuthHeaderProps = {
+  logoSrc: string;
+  logoAlt: string;
+  title: string;
+  subtitle?: string;
+  logoSize?: number;
+}
+
+export type  TextInputFieldProps = {
+  id: string;
+  name: string;
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  autoComplete?: string;
+}
