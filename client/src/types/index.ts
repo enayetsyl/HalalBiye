@@ -101,3 +101,32 @@ export type   ProfileFieldProps = {
   label: string;
   value: string | number;
 }
+
+
+export type  ProfileFormProps = { 
+  form: TUpdatableProfileFields;
+  saving: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSelect: (name: string, value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}
+
+export type FieldConfig =
+  | {
+      name: keyof TUpdatableProfileFields;
+      label: string;
+      type: "text";
+    }
+  | {
+      name: keyof TUpdatableProfileFields;
+      label: string;
+      type: "number";
+      min?: number;
+      max?: number;
+    }
+  | {
+      name: keyof TUpdatableProfileFields;
+      label: string;
+      type: "select";
+      options: readonly string[];
+    };
