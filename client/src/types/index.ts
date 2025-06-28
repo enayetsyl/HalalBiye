@@ -130,3 +130,45 @@ export type FieldConfig =
       type: "select";
       options: readonly string[];
     };
+
+    export type  RegisterFormFieldProps = {
+  id: string;
+  name: string;
+  label: string;
+  type?: string;
+  value: string;
+  required?: boolean;
+  placeholder?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export type  RegisterSelectFieldProps = {
+  id: string;
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  onChange: (value: string) => void;
+}
+
+export type RegisterFormValues = {
+  email: string;
+  password: string;
+  name: string;
+  age: string;
+  height: string;
+  gender: string;
+  religion: string;
+  location: string;
+  education: string;
+  occupation: string;
+}
+
+export type RegisterFieldConfig = {
+  id: keyof RegisterFormValues;
+  label: string;
+  type: "text" | "email" | "password" | "number" | "select";
+  required?: boolean;
+  placeholder?: string;
+  options?: { value: string; label: string }[]; // only for select
+}
