@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
+import { ApiError, fetchMyProfile, updateMyProfile } from "@/lib/api";
 
 type UpdatableProfileFields = {
   name?: string;
@@ -37,41 +38,28 @@ export default function EditProfilePage() {
 
   // Fetch current profile info to pre-fill the form
   useEffect(() => {
-    async function fetchProfile() {
+    async function load() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/me`, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          let data;
-          try {
-            data = await res.json();
-          } catch {
-            data = { message: await res.text() };
-          }
-          toast.error(data.message || "Failed to load profile.");
-          setLoading(false);
-          return;
-        }
-        const data = await res.json();
-        const p = data.data || data; // Adjust if your BE returns under .data
+        const user = await fetchMyProfile();
+        // fill form with returned IUser
         setForm({
-          name: p.name ?? "",
-          age: p.age ?? "",
-          gender: p.gender ?? "",
-          religion: p.religion ?? "",
-          location: p.location ?? "",
-          height: p.height ?? "",
-          education: p.education ?? "",
-          occupation: p.occupation ?? "",
+          name: user.name ?? "",
+          age: user.age,
+          gender: user.gender ?? "",
+          religion: user.religion ?? "",
+          location: user.location ?? "",
+          height: user.height,
+          education: user.education ?? "",
+          occupation: user.occupation ?? "",
         });
-      } catch {
-        toast.error("An unexpected error occurred.");
+      } catch (err: unknown) {
+        const apiErr = err as ApiError;
+        toast.error(apiErr.message || "Failed to load profile.");
       } finally {
         setLoading(false);
       }
     }
-    fetchProfile();
+    load();
   }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -91,38 +79,20 @@ export default function EditProfilePage() {
     setSaving(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/me`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) {
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = { message: await res.text() };
-        }
-        toast.error(data.message || "Update failed.");
-        if (data.errorSources && Array.isArray(data.errorSources)) {
-          data.errorSources.forEach((src: { path: string; message: string }) => {
-            toast.error(src.path ? `${src.path}: ${src.message}` : src.message);
-          });
-        }
-        setSaving(false);
-        return;
-      }
-
+      await updateMyProfile(form);
       toast.success("Profile updated!");
       router.push("/profile");
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
+      toast.error(apiErr.message || "Update failed.");
+      apiErr.errorSources?.forEach(src =>
+        toast.error(src.path ? `${src.path}: ${src.message}` : src.message)
+      );
     } finally {
       setSaving(false);
     }
   }
+
 
   if (loading) {
     return (

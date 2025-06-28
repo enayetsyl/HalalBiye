@@ -7,13 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import Image from "next/image";
+import { ApiError, fetchUsers, IUser, sendConnectionRequest } from "@/lib/api";
 
-type UserProfile = {
-  _id: string;
-  name: string;
-  email: string;
-  gender?: string;
-  religion?: string;
+type UserProfile = IUser & {
   connectionStatus?: "none" | "pending" | "accepted" | "rejected";
 };
 
@@ -25,39 +21,24 @@ export default function BrowsePage() {
 
   // Fetch filtered users
   useEffect(() => {
-    async function fetchProfiles() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (filters.gender) params.append("gender", filters.gender);
-        if (filters.religion) params.append("religion", filters.religion);
-
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users?${params.toString()}`,
-          { credentials: "include", cache: "no-store" }
-        );
-        if (!res.ok) {
-          let data;
-          try {
-            data = await res.json();
-          } catch {
-            data = { message: await res.text() };
-          }
-          toast.error(data.message || "Failed to load profiles.");
-          setProfiles([]);
-        } else {
-          const data = await res.json();
-          setProfiles(data.data || data);
-        }
-      } catch {
-        toast.error("An unexpected error occurred.");
-        setProfiles([]);
-      } finally {
-        setLoading(false);
-      }
+    async function load() {
+    setLoading(true);
+    try {
+      console.log("Fetching users with filters:", filters);
+      const users = await fetchUsers(filters);
+      console.log("→ fetchUsers returned:", users);
+      setProfiles(users.map(u => ({ ...u})));
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
+      toast.error(apiErr.message);
+      apiErr.errorSources?.forEach(src => toast.error(src.message));
+      setProfiles([]);
+    } finally {
+      setLoading(false);
     }
-    fetchProfiles();
-  }, [filters]);
+  }
+  load();
+}, [filters]);
 
   // Handle filter changes
   function handleFilterChange(name: string, value: string) {
@@ -68,39 +49,21 @@ export default function BrowsePage() {
   async function handleSendRequest(userId: string) {
     setLoadingUserId(userId);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/requests`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ toUser: userId }),
-        }
-      );
-      if (!res.ok) {
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = { message: await res.text() };
-        }
-        toast.error(data.message || "Failed to send request.");
-      } else {
-        toast.success("Request sent!");
-        setProfiles((prev) =>
-          prev.map((profile) =>
-            profile._id === userId
-              ? { ...profile, connectionStatus: "pending" }
-              : profile
-          )
-        );
-      }
-    } catch {
-      toast.error("An unexpected error occurred.");
-    } finally {
-      setLoadingUserId(null);
-    }
+    await sendConnectionRequest(userId);
+    toast.success("Request sent!");
+    setProfiles(prev =>
+      prev.map(p =>
+        p._id === userId ? { ...p, connectionStatus: "pending" } : p
+      )
+    );
+  } catch (err: unknown) {
+    const apiErr = err as ApiError;
+    toast.error(apiErr.message);
+    apiErr.errorSources?.forEach(src => toast.error(src.message));
+  } finally {
+    setLoadingUserId(null);
   }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-secondary/30 via-neutral/60 to-accent/60 relative py-12">

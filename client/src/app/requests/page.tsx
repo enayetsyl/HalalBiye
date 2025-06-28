@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
+import { fetchIncomingRequests, fetchOutgoingRequests, respondToRequest } from "@/lib/api";
 
 type UserSummary = {
   _id: string;
@@ -47,25 +48,20 @@ export default function Requests() {
 
   async function fetchAllRequests() {
     setLoading(true);
-    try {
-      const [inRes, outRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/requests/incoming`, {
-          credentials: "include",
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/requests/outgoing`, {
-          credentials: "include",
-        }),
-      ]);
-      const inData = await inRes.json();
-      const outData = await outRes.json();
-      setIncoming(inData.data || []);
-      setOutgoing(outData.data || []);
-    } catch {
-      toast.error("Failed to load requests.");
-    } finally {
-      setLoading(false);
-    }
+   try {
+    const [inData, outData] = await Promise.all([
+      fetchIncomingRequests(),   // returns IRequest[]
+      fetchOutgoingRequests(),   // returns IRequest[]
+    ]);
+    setIncoming(inData);
+    setOutgoing(outData);
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    toast.error(e.message || "Failed to load requests.");
+  } finally {
+    setLoading(false);
   }
+}
 
   // Sent pending (requests you sent)
   const sentPending = outgoing.filter((req) => req.status === "pending");
@@ -117,42 +113,28 @@ export default function Requests() {
 
   // Accept or Decline a received request
   async function handleRespond(requestId: string, action: "accept" | "decline") {
-    setActionLoading(requestId + action);
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/requests/${action}`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ id: requestId }),
-        }
-      );
-      if (!res.ok) {
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = { message: await res.text() };
-        }
-        toast.error(data.message || `Failed to ${action} request.`);
-      } else {
-        toast.success(`Request ${action === "accept" ? "accepted" : "declined"}!`);
-        // Update the request in state
-        setIncoming((prev) =>
-          prev.map((req) =>
-            req._id === requestId ? { ...req, status: action === "accept" ? "accepted" : "rejected" } : req
-          )
-        );
-      }
-    } catch {
-      toast.error("An unexpected error occurred.");
-    } finally {
-      setActionLoading(null);
-    }
+  setActionLoading(requestId + action);
+  try {
+    await respondToRequest(requestId, action);  // throws on non-OK
+    toast.success(
+      action === "accept" ? "Request accepted!" : "Request declined!"
+    );
+    // mirror your old state-update logic:
+    setIncoming(prev =>
+  prev.map(r =>
+    r._id === requestId
+      ? { ...r, status: action === "accept" ? "accepted" : "rejected" }
+      : r
+  )
+);
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    toast.error(e.message || `Failed to ${action} request.`);
+  } finally {
+    setActionLoading(null);
   }
+}
+
 
   return (
     <div className="relative min-h-screen ">

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ApiError, registerUser } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -40,45 +41,33 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          age: form.age ? Number(form.age) : undefined,
-          height: form.height ? Number(form.height) : undefined,
-        }),
-      });
+    await registerUser({
+      email:    form.email,
+      password: form.password,
+      name:     form.name,
+      age:      form.age ? Number(form.age) : undefined,
+      height:   form.height ? Number(form.height) : undefined,
+      gender:   form.gender,
+      religion: form.religion,
+      location: form.location,
+      education: form.education,
+      occupation: form.occupation,
+    });
 
-      if (!res.ok) {
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = { message: await res.text() };
-        }
-        toast.error(data.message || "Registration failed.");
-        if (data.errorSources && Array.isArray(data.errorSources)) {
-          data.errorSources.forEach((src: { path: string; message: string }) => {
-            toast.error(src.path ? `${src.path}: ${src.message}` : src.message);
-          });
-        }
-        setLoading(false);
-        return;
-      }
+    toast.success("Registration successful! Please log in.");
+    router.push("/login");
+  } catch (err: unknown) {
+    // err is your ApiError from lib/api
+    const apiErr = err as ApiError;
+    toast.error(apiErr.message);
 
-      toast.success("Registration successful! Please log in.");
-      router.push("/login");
-    } catch (err: unknown) {
-  // If err is a Response object or plain error
-  let errorMessage = "An unexpected error occurred.";
-  if (err && typeof err === "object" && "message" in err) {
-    errorMessage = (err as { message: string }).message;
+    // show any field-level errors
+    apiErr.errorSources?.forEach((src) =>
+      toast.error(src.path ? `${src.path}: ${src.message}` : src.message)
+    );
+  } finally {
+    setLoading(false);
   }
-  toast.error(errorMessage);
-} finally {
-      setLoading(false);
-    }
   }
 
   return (

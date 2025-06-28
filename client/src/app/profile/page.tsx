@@ -7,56 +7,36 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil } from "lucide-react";
+import { ApiError, fetchMyProfile, IUser } from "@/lib/api";
 
-type Profile = {
-  _id: string;
-  name?: string;
-  email?: string;
-  age?: number;
-  gender?: string;
-  religion?: string;
-  location?: string;
-  height?: number;
-  education?: string;
-  occupation?: string;
-};
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProfile() {
       try {
-        setLoading(true);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/me`, {
-          credentials: "include",
-          cache:"no-store"
-        });
-        if (!res.ok) {
-          let data;
-          try {
-            data = await res.json();
-          } catch {
-            data = { message: await res.text() };
-          }
-          toast.error(data.message || "Failed to load profile.");
-          setLoading(false);
-          return;
-        }
-        const data = await res.json();
-        setProfile(data.data || data); // adjust depending on your BE response
-      } catch (err: unknown) {
-      let errorMessage = "An unexpected error occurred.";
-      if (err && typeof err === "object" && "message" in err) {
-        errorMessage = (err as { message: string }).message;
-      }
-      toast.error(errorMessage);
-    } finally {
-        setLoading(false);
-      }
-    }
+    setLoading(true);
+
+    // 1) call the centralized API function
+    const user: IUser = await fetchMyProfile();
+
+    // 2) update state
+    setProfile(user);
+
+  } catch (err: unknown) {
+    // 3) handle errors via our ApiError interface
+    const apiErr = err as ApiError;
+    toast.error(apiErr.message);
+    apiErr.errorSources?.forEach(src => toast.error(src.message));
+
+  } finally {
+    // 4) always turn loading off
+    setLoading(false);
+  }
+}
     fetchProfile();
   }, []);
 

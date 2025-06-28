@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Image from "next/image";
+import { ApiError, loginUser } from "@/lib/api";
 
 const Login = () => {
   const router = useRouter();
@@ -32,43 +33,20 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-        credentials: "include", // If using cookies for auth
-      });
-
-      if (!res.ok) {
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          data = { message: await res.text() };
-        }
-        toast.error(data.message || "Login failed.");
-        if (data.errorSources && Array.isArray(data.errorSources)) {
-          data.errorSources.forEach((src: { path: string; message: string }) => {
-            toast.error(src.path ? `${src.path}: ${src.message}` : src.message);
-          });
-        }
-        setLoading(false);
-        return;
-      }
-
-      toast.success("Login successful! Redirecting...");
-     localStorage.setItem("isAuthenticated", "true");
-     window.dispatchEvent(new Event("authChanged"));
-      router.push("/profile"); // or your post-login route
-    } catch (err: unknown) {
-      let errorMessage = "An unexpected error occurred.";
-      if (err && typeof err === "object" && "message" in err) {
-        errorMessage = (err as { message: string }).message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+   await loginUser(form.email, form.password);
+  toast.success("Login successful! Redirecting…");
+  localStorage.setItem("isAuthenticated", "true");
+  window.dispatchEvent(new Event("authChanged"));
+  router.push("/profile");
+} catch (err) {
+  const apiErr = err as ApiError;
+  toast.error(apiErr.message);
+  apiErr.errorSources?.forEach(src =>
+    toast.error(src.path ? `${src.path}: ${src.message}` : src.message)
+  );
+} finally {
+  setLoading(false);
+}
   }
 
   return (
