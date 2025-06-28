@@ -96,3 +96,8 @@ export type  TextInputFieldProps = {
   required?: boolean;
   autoComplete?: string;
 }
+
+export type   ProfileFieldProps = {
+  label: string;
+  value: string | number;
+}
