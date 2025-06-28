@@ -1,11 +1,4 @@
 "use strict";
-/**
- * @module RequestRoutes
- * @description
- * Defines all `/api/v1/requests` endpoints for managing connection requests between users.
- * Each route is protected by authentication middleware and, where applicable,
- * request payloads are validated against JSON schemas.
- */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -50,70 +43,9 @@ const authMiddleware_1 = __importDefault(require("../../middlewares/authMiddlewa
 const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
 const request_validation_1 = require("../Request/request.validation");
 const router = (0, express_1.Router)();
-/**
- * Send a new connection request.
- *
- * @route POST /
- * @access Protected
- * @middleware authMiddleware       - ensures the user is authenticated
- * @middleware validateRequest      - enforces shape of request body against sendRequestSchema
- * @controller RequestController.sendRequest
- *
- * @example
- * POST /api/v1/requests
- * {
- *   "toUser": "60d0fe4f5311236168a109ca"
- * }
- */
 router.post('/', authMiddleware_1.default, (0, validateRequest_1.default)(request_validation_1.sendRequestSchema), RequestController.sendRequest);
-/**
- * Retrieve all incoming connection requests for the authenticated user.
- *
- * @route GET /incoming
- * @access Protected
- * @middleware authMiddleware       - ensures the user is authenticated
- * @controller RequestController.getIncomingRequests
- */
 router.get('/incoming', authMiddleware_1.default, RequestController.getIncomingRequests);
-/**
- * Retrieve all outgoing connection requests sent by the authenticated user.
- *
- * @route GET /outgoing
- * @access Protected
- * @middleware authMiddleware       - ensures the user is authenticated
- * @controller RequestController.getOutgoingRequests
- */
 router.get('/outgoing', authMiddleware_1.default, RequestController.getOutgoingRequests);
-/**
- * Accept a pending connection request.
- *
- * @route POST /accept
- * @access Protected
- * @middleware authMiddleware       - ensures the user is authenticated
- * @middleware validateRequest      - enforces shape of request body against requestIdParamSchema
- * @controller RequestController.acceptRequest
- *
- * @example
- * POST /api/v1/requests/accept
- * {
- *   "id": "60d0fe4f5311236168a109cb"
- * }
- */
 router.post('/accept', authMiddleware_1.default, (0, validateRequest_1.default)(request_validation_1.requestIdParamSchema), RequestController.acceptRequest);
-/**
- * Decline a pending connection request.
- *
- * @route POST /decline
- * @access Protected
- * @middleware authMiddleware       - ensures the user is authenticated
- * @middleware validateRequest      - enforces shape of request body against requestIdParamSchema
- * @controller RequestController.declineRequest
- *
- * @example
- * POST /api/v1/requests/decline
- * {
- *   "id": "60d0fe4f5311236168a109cc"
- * }
- */
 router.post('/decline', authMiddleware_1.default, (0, validateRequest_1.default)(request_validation_1.requestIdParamSchema), RequestController.declineRequest);
 exports.RequestRoutes = router;

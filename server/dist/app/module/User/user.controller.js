@@ -30,22 +30,7 @@ const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const user_service_1 = require("./user.service");
 const tokenGenerator_1 = require("../../utils/tokenGenerator");
 const config_1 = __importDefault(require("../../../config"));
-/**
- * @module UserControllers
- */
-/**
- * @typedef {import('express').Request} Request
- * @typedef {import('express').Response} Response
- */
-/**
- * @desc    Register a new user with email, password, and profile data.
- * @route   POST /api/v1/users/register
- * @access  Public
- *
- * @param {Request} req - Express request object, expecting `req.body.email`, `req.body.password`, and other profile fields.
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
- */
+// Controller for registering a new user
 const registerUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Destructure email, password and any other profile fields
     const _a = req.body, { email, password } = _a, profileData = __rest(_a, ["email", "password"]);
@@ -59,29 +44,18 @@ const registerUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         data: result,
     });
 }));
-/**
- * @desc    Authenticate user and set JWT cookie.
- * @route   POST /api/v1/users/login
- * @access  Public
- *
- * @param {Request} req - Express request object, expecting `req.body.email` and `req.body.password`.
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
- */
 const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
-    // Validate credentials via service layer
     const user = yield user_service_1.UserServices.loginUser(email, password);
-    // Generate JWT token
+    // generate JWT
     const token = (0, tokenGenerator_1.createToken)({ userId: email.toString(), role: 'user' }, config_1.default.jwt_secret, config_1.default.jwt_expires_in);
-    // Set HTTP-only auth cookie
+    // set cookie
     res.cookie('token', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
         maxAge: Number(config_1.default.jwt_cookie_expires_ms),
     });
-    // Send response with user data
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -90,16 +64,12 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
     });
 }));
 /**
- * @desc    Log out the current user by clearing the auth cookie.
+ * @desc    Log the user out by clearing the auth cookie
  * @route   POST /api/v1/users/logout
  * @access  Private
- *
- * @param {Request} req - Express request object (authenticated).
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
  */
 const logoutUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Clear the token cookie to log out
+    // clear the token cookie
     res.clearCookie('token', {
         httpOnly: true,
         secure: true,
@@ -113,16 +83,12 @@ const logoutUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     });
 }));
 /**
- * @desc    Fetch the profile of the authenticated user.
+ * @desc    Return the authenticated user’s profile (by email from req.user)
  * @route   GET /api/v1/users/me
  * @access  Private
- *
- * @param {Request} req - Express request object, with `req.user` set to the authenticated email by middleware.
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
  */
 const getCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Extract authenticated email
+    // req.user was set to the email in your authMiddleware
     const email = req.user;
     const result = yield user_service_1.UserServices.getUserByEmail(email);
     (0, sendResponse_1.default)(res, {
@@ -133,18 +99,14 @@ const getCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
     });
 }));
 /**
- * @desc    Get a list of users matching optional query filters, excluding the current user.
+ * @desc    Get a list of users matching optional filters
  * @route   GET /api/v1/users
  * @access  Private
- *
- * @param {Request} req - Express request object, with `req.query` containing filter params and `req.user` set to email.
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
  */
 const getUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Copy query filters
+    // Collect filters except for the current user
     const filters = Object.assign({}, req.query);
-    // Exclude current user by email
+    // Exclude current user's email from results
     if (req.user) {
         filters.email = { $ne: req.user };
     }
@@ -156,17 +118,8 @@ const getUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 
         data: result,
     });
 }));
-/**
- * @desc    Update the profile of the authenticated user.
- * @route   PUT /api/v1/users/me
- * @access  Private
- *
- * @param {Request} req - Express request object, with `req.user` and `req.body` containing update fields.
- * @param {Response} res - Express response object.
- * @returns {Promise<void>}
- */
 const updateCurrentUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Extract authenticated email and update data
+    // req.user contains the authenticated email
     const email = req.user;
     const updateData = req.body;
     const updatedUser = yield user_service_1.UserServices.updateUserProfile(email, updateData);
@@ -182,6 +135,5 @@ exports.UserControllers = {
     loginUser,
     getCurrentUser,
     getUsers,
-    updateCurrentUser,
-    logoutUser,
+    updateCurrentUser, logoutUser
 };

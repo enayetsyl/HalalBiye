@@ -48,12 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-/** Number of salt rounds for bcrypt hashing */
 const SALT_ROUNDS = 10;
-/**
- * Mongoose schema defining the shape of User documents.
- * Includes email, password, and various optional profile fields.
- */
 const UserSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -65,20 +60,13 @@ const UserSchema = new mongoose_1.Schema({
     height: Number,
     education: String,
     occupation: String,
-}, { timestamps: true } // Automatically add createdAt and updatedAt
-);
-/**
- * Remove the password field when converting a document to JSON.
- */
+}, { timestamps: true });
 UserSchema.set('toJSON', {
     transform(doc, ret) {
         delete ret.password;
         return ret;
     }
 });
-/**
- * Remove the password field when converting a document to a plain object.
- */
 UserSchema.set('toObject', {
     transform(doc, ret) {
         delete ret.password;
@@ -86,9 +74,7 @@ UserSchema.set('toObject', {
     }
 });
 // ——— HASH PASSWORD BEFORE SAVE ———
-/**
- * Pre-save hook: hashes the password if it has been modified.
- */
+// Using an async hook means you can omit `next()` entirely and just throw on error.
 UserSchema.pre('save', function () {
     return __awaiter(this, void 0, void 0, function* () {
         if (!this.isModified('password'))
@@ -97,13 +83,8 @@ UserSchema.pre('save', function () {
     });
 });
 // ——— INSTANCE HELPER TO COMPARE PASSWORDS ———
-/**
- * Compare a candidate password to the stored hash.
- * This is available on IUser instances.
- */
 UserSchema.methods.comparePassword = function (candidate) {
     return bcrypt_1.default.compare(candidate, this.password);
 };
-/** Mongoose Model for interacting with User documents */
 exports.User = mongoose_1.default.model('User', UserSchema);
 exports.default = exports.User;
