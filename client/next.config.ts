@@ -12,19 +12,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 2️⃣  (Optional) CORS-friendly headers for local dev or other tools
-  //     Safe because the request is now same-origin in production.
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: 'https://halal-biye.vercel.app' },
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-        ],
-      },
-    ];
-  },
+  
 
   // 3️⃣  Any other Next.js options go here
   reactStrictMode: true,
