@@ -11,7 +11,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/shared/Navbar";
 
-
 /**
  * Google Font: Nunito
  * Used for all sans-serif text throughout the app.
@@ -56,15 +55,11 @@ export const dynamic = "force-dynamic";
  *
  * @param props.children - The page or component tree to render inside the layout.
  */
-
-
-
-export default  function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
   return (
     <html lang="en">
       <body
