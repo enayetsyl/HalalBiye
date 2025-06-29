@@ -31,6 +31,7 @@ export type TUser = {
   createdAt?: string;
   /** ISO timestamp when the user was last updated */
   updatedAt?: string;
+  token?: string;
 };
 
 /**

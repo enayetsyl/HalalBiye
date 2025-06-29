@@ -9,6 +9,23 @@ import { ApiError } from "@/types/api";
 import { API_BASE } from "./config";
 import { TRequest, TUser } from "@/types";
 
+
+function normalizeHeaders(headers: RequestInit["headers"]): Record<string, string> {
+  if (!headers) return {};
+  if (headers instanceof Headers) {
+    const obj: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      obj[key] = value;
+    });
+    return obj;
+  }
+  if (Array.isArray(headers)) {
+    // [ [key, value], ... ]
+    return Object.fromEntries(headers) as Record<string, string>;
+  }
+  return headers as Record<string, string>;
+}
+
 /**
  * Generic HTTP request helper.
  *
@@ -22,12 +39,21 @@ async function request<T>(
   path: string,
   opts: RequestInit = {}
 ): Promise<T> {
+   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const originalHeaders = normalizeHeaders(opts.headers);
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...originalHeaders,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(opts.headers || {}),
-    },
+    headers,
     ...opts,
   });
 

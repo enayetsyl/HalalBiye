@@ -63,8 +63,9 @@ export const LoginForm: React.FC = () => {
 
     setLoading(true);
  try {
-  await loginUser(form.email, form.password)
+  const user = await loginUser(form.email, form.password)
   toast.success("Login successful! Redirecting...")
+  localStorage.setItem("token", user.token!)
   localStorage.setItem("isAuthenticated", "true")
   window.dispatchEvent(new Event("authChanged"))
   router.push("/profile")

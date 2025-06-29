@@ -13,12 +13,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
+/**
+ * Creates an Express middleware that validates incoming requests against the provided Zod schema.
+ *
+ * This middleware will asynchronously parse and validate the `body` and `cookies` of the request.
+ * If validation succeeds, it calls `next()` to proceed to the next handler. Any validation errors
+ * will be thrown and handled by the centralized error handler (via `catchAsync`).
+ *
+ * @param schema - A Zod schema object defining the expected shape of `req.body` and `req.cookies`.
+ * @returns An Express middleware function that performs schema validation.
+ */
 const validateRequest = (schema) => {
     return (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        // Parse and validate request data against the schema
         yield schema.parseAsync({
             body: req.body,
             cookies: req.cookies,
         });
+        // Proceed if validation passed
         next();
     }));
 };
