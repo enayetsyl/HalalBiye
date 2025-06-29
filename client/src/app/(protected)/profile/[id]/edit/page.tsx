@@ -6,6 +6,7 @@ import { useProfileEdit } from "@/hooks/useProfileEdit";
 import { EditProfileHeader } from "@/components/editProfile/EditProfileHeader";
 import { EditProfileForm } from "@/components/editProfile/EditProfileForm";
 import { LoadingScreen } from "@/components/editProfile/LoadingScreent";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /**
  * @file EditProfilePage.tsx
@@ -27,6 +28,7 @@ import { LoadingScreen } from "@/components/editProfile/LoadingScreent";
  *                        header, and form for updating profile fields.
  */
 export default function EditProfilePage() {
+  useRequireAuth();
   // Destructure state and handlers from our custom profile-edit hook
   const {
     form,

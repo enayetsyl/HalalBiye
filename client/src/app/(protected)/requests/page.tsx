@@ -12,6 +12,7 @@ import { TUserRequest } from "@/types";
 import SentRequestCard from "@/components/requests/SentRequestCard";
 import ReceivedRequestCard from "@/components/requests/ReceivedRequestCard";
 import AcceptedRequestCard from "@/components/requests/AcceptedRequestCard";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /**
  * Requests page component.
@@ -20,6 +21,7 @@ import AcceptedRequestCard from "@/components/requests/AcceptedRequestCard";
  * Allows accepting or declining incoming requests.
  */
 export default function Requests() {
+  useRequireAuth();
   /** Incoming requests received by the current user */
   const [incoming, setIncoming] = useState<TUserRequest[]>([]);
 

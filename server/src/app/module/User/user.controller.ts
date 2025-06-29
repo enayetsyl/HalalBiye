@@ -62,13 +62,13 @@ const loginUser = catchAsync(async (req, res) => {
     config.jwt_expires_in
   );
 
-  // Set HTTP-only auth cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: Number(config.jwt_cookie_expires_ms),
-  });
+  // // Set HTTP-only auth cookie
+  // res.cookie('token', token, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === 'production',
+  //   sameSite: 'strict',
+  //   maxAge: Number(config.jwt_cookie_expires_ms),
+  // });
 
   // Send response with user data
   sendResponse(res, {
@@ -90,11 +90,11 @@ const loginUser = catchAsync(async (req, res) => {
  */
 const logoutUser = catchAsync(async (req, res) => {
   // Clear the token cookie to log out
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-  });
+  // res.clearCookie('token', {
+  //   httpOnly: true,
+  //   secure: true,
+  //   sameSite: 'none',
+  // });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

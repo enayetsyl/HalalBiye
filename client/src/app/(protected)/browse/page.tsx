@@ -8,6 +8,7 @@ import { ApiError } from "@/types/api";
 import { fetchUsers, sendConnectionRequest } from "@/lib/api";
 import FilterBar from "@/components/browse/filter-bar";
 import ProfileCard from "@/components/browse/profile-card";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /**
  * BrowsePage component renders a list of user profiles with filtering options
@@ -17,6 +18,7 @@ import ProfileCard from "@/components/browse/profile-card";
  * @returns {JSX.Element} The rendered browse page.
  */
 export default function BrowsePage(): JSX.Element {
+  useRequireAuth();
   // List of user profiles fetched from the server
   const [profiles, setProfiles] = useState<TUserProfile[]>([]);
   // Whether the page is currently loading profile data

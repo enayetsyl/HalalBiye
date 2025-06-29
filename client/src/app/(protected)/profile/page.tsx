@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { PageLoader } from "@/components/profile/PageLoader";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileField } from "@/components/profile/ProfileField";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /**
  * ProfilePage
@@ -20,6 +21,7 @@ import { ProfileField } from "@/components/profile/ProfileField";
  * - Falls back to a “no additional info” message if all optional fields are missing.
  */
 export default function ProfilePage() {
+  useRequireAuth();
   // Custom hook to retrieve profile data, loading state, and any error message
   const { profile, loading, error } = useProfile();
 

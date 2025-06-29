@@ -35,6 +35,7 @@ export function useAuth() {
         { method: "POST", credentials: "include" }
       );
       localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("token");
       setIsAuthenticated(false);
       router.push("/login");
     } catch (err) {
