@@ -18,24 +18,10 @@ import { toast } from "sonner";
 
 import { TextInputField } from "./TextInputField";
 import { Button } from "@/components/ui/button";
+import { loginUser } from "@/lib/api";
+import { ApiError } from "@/types/api";
 
-type LoginResponse = {
-  success: boolean;
-  user: {
-    // adjust fields based on your backend's user shape
-    _id: string;
-    email: string;
-    name: string;
-    // Add more if you return them
-    [key: string]: unknown;
-  };
-};
 
-type LoginError = {
-  message: string;
-  errorSources?: { path?: string; message: string }[];
-  status?: number;
-};
 
 export const LoginForm: React.FC = () => {
   // Router for navigating after successful login
@@ -76,50 +62,19 @@ export const LoginForm: React.FC = () => {
     }
 
     setLoading(true);
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: form.email, password: form.password }),
-    });
-
-    // Strictly type the possible result
-    const text = await res.text();
-    let data: LoginResponse | LoginError = { message: "Unexpected error." };
-
-    try {
-      data = text ? (JSON.parse(text) as LoginResponse | LoginError) : data;
-    } catch {
-      // If parsing fails, show the raw text
-      toast.error(text);
-      return;
-    }
-
-    if (!res.ok) {
-      const apiErr = data as LoginError;
-      toast.error(apiErr.message || "Login failed.");
-      apiErr.errorSources?.forEach((src) =>
-        toast.error(src.path ? `${src.path}: ${src.message}` : src.message)
-      );
-      return;
-    }
-
-    // Success!
-    toast.success("Login successful! Redirecting…");
-    localStorage.setItem("isAuthenticated", "true");
-    window.dispatchEvent(new Event("authChanged"));
-
-    setTimeout(() => {
-      router.push("/profile");
-    }, 100);
-
-  } catch (err) {
-    // Fallback for network errors, parsing issues, etc.
-    toast.error(err instanceof Error ? err.message : "Login failed. Please try again.");
-  } finally {
-    setLoading(false);
-  }
+ try {
+  await loginUser(form.email, form.password)
+  toast.success("Login successful! Redirecting...")
+  localStorage.setItem("isAuthenticated", "true")
+  window.dispatchEvent(new Event("authChanged"))
+  router.push("/profile")
+ } catch (error) {
+  const apiError = error as ApiError
+  toast.error(apiError.message)
+  apiError.errorSources?.forEach((src)=> toast.error(src.path ? `${src.path} : ${src.message}` : src.message))
+ } finally{
+  setLoading(false)
+ }
 }
 
   return (
